@@ -14,7 +14,8 @@ class Prefs
   public:
     enum VisualComparisonModes {
         _PHASH,
-        _SSIM
+        _SSIM,
+        _3DDCT
     };
     enum DeletionModes {
         STANDARD_TRASH,
@@ -73,6 +74,10 @@ class Prefs
 
     int _differentDurationModifier = 4;
     int _sameDurationModifier = 1;
+
+    // 3D-DCT comparison mode (Czkawka/similario_core style visual 3D-DCT hashing).
+    // Stored as a percentage (0..100); the matcher divides by 100 into a 0..1 score.
+    int _threshold3DDCT = 90;
 
     DeletionModes delMode = STANDARD_TRASH;
 

@@ -118,6 +118,8 @@ set(PROJECT_SOURCES
     app/comparison/internal/videopairmatcher.cpp
     app/comparison/internal/videopairmatcher.h
     app/comparison/internal/videopairspace.h
+    app/video3ddct.h
+    app/video3ddct.cpp
     app/thumbnail.h
     app/db.cpp
     app/db.h

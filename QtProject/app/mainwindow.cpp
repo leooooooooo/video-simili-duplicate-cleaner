@@ -1,6 +1,7 @@
 // Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3).
 #include "mainwindow.h"
 #include "prefs.h"
+#include "video3ddct.h"
 #include <QProgressDialog>
 
 #ifdef Q_OS_MACOS
@@ -843,8 +844,15 @@ void MainWindow::setComparisonMode(const int& mode)
     this->_prefs.comparisonMode(static_cast<Prefs::VisualComparisonModes>(mode));
     if (mode == Prefs::_PHASH)
         ui->selectPhash->setChecked(true);
-    else
+    else if (mode == Prefs::_SSIM)
         ui->selectSSIM->setChecked(true);
+    else if (mode == Prefs::_3DDCT)
+        ui->select3DDCT->setChecked(true);
+    // Keep the threshold slider showing the value relevant to the active mode.
+    if (mode == Prefs::_3DDCT)
+        this->ui->thresholdSlider->setValue(_prefs._threshold3DDCT);
+    else
+        this->ui->thresholdSlider->setValue(_prefs.matchSimilarityThreshold());
     ui->directoryBox->setFocus();
 }
 void MainWindow::on_selectThumbnails_activated(const int& index)
@@ -867,6 +875,11 @@ void MainWindow::on_selectSSIM_clicked(const bool& checked)
 {
     if (checked)
         setComparisonMode(_prefs._SSIM);
+}
+void MainWindow::on_select3DDCT_clicked(const bool& checked)
+{
+    if (checked)
+        setComparisonMode(Prefs::_3DDCT);
 }
 void MainWindow::on_blocksizeCombo_activated(const int& index)
 {
@@ -895,6 +908,7 @@ void MainWindow::setMatchSimilarityThreshold(const int& value)
     _prefs._thresholdSSIM = value / 100.0;
     const int matchingBitsOf64 = static_cast<int>(round(64 * _prefs._thresholdSSIM));
     _prefs._thresholdPhash = matchingBitsOf64;
+    _prefs._threshold3DDCT = value; // the same slider also drives the 3D-DCT similarity threshold
 
     this->ui->thresholdSlider->setValue(value);
     this->ui->threshPercent->setNum(value);

@@ -1,6 +1,7 @@
 #include "videopairmatcher.h"
 
 #include "ssim.h"
+#include "video3ddct.h"
 
 #include <bit>
 
@@ -75,11 +76,30 @@ VideoPairMatchConfig VideoPairMatcher::configFromPrefs(const Prefs& prefs)
 {
     return {prefs.comparisonMode(), prefs.thumbnailsMode(),      prefs._thresholdPhash,
             prefs._thresholdSSIM,   prefs._ssimBlockSize,        prefs._sameDurationModifier,
-            prefs._differentDurationModifier, prefs.detectRotatedCopies()};
+            prefs._differentDurationModifier, prefs.detectRotatedCopies(),
+            prefs._threshold3DDCT / 100.0};
 }
 
 VideoPairMatchResult VideoPairMatcher::match(const Video& left, const Video& right, const VideoPairMatchConfig& config)
 {
+    // 3D-DCT mode (Czkawka/similario_core style visual 3D-DCT hashing): best for
+    // mid-clip extracts, intros/outros ads, and other temporal offsets that pHash/SSIM
+    // cannot catch. Signatures are extracted on demand and cached on each Video.
+    if (config.comparisonMode == Prefs::_3DDCT) {
+        const v3d::VideoSignature& sigL = left.dct3dSignature();
+        const v3d::VideoSignature& sigR = right.dct3dSignature();
+        VideoPairMatchResult result;
+        if (sigL.visual_hashes.empty() || sigR.visual_hashes.empty())
+            return result;
+        v3d::CompareConfig ccfg;
+        ccfg.tolerance = 0.30f; // window Hamming tolerance (fixed; user governs final strictness below)
+        const v3d::CompareResult cr = v3d::compare(sigL, sigR, ccfg);
+        result.ssimSimilarity = cr.visual_score;                 // 0..1, shown in the comparison UI
+        result.phashSimilarity = static_cast<int>(cr.visual_score * 64.0 + 0.5);
+        result.matches = (cr.kind != v3d::SimilarityKind::None) && (cr.visual_score >= config.threshold3DDCT);
+        return result;
+    }
+
     VideoPairMatchResult bestResult;
     const int hashes = config.thumbnailsMode == cutEnds ? 2 : 1;
     // In cutEnds mode, try each thumbnail/hash until one matches. A match from

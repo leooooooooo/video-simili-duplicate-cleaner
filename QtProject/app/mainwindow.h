@@ -68,6 +68,7 @@ class MainWindow : public QMainWindow
     void on_selectThumbnails_activated(const int& index);
     void on_selectPhash_clicked(const bool& checked);
     void on_selectSSIM_clicked(const bool& checked);
+    void on_select3DDCT_clicked(const bool& checked);
     void on_blocksizeCombo_activated(const int& index);
     void on_differentDurationCombo_activated(const int& index);
     void on_sameDurationCombo_activated(const int& index);

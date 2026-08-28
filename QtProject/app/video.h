@@ -12,6 +12,7 @@
 
 #include "db.h"
 #include "prefs.h"
+#include "video3ddct.h"
 #include "visualfingerprint.h"
 #include "videometadata.h"
 #include <QtCore/qmutex.h>
@@ -74,6 +75,11 @@ class Video : public QObject
     QImage ffmpegLib_captureAt(const int percent,
                                const int ofDuration = 100); // new methods for capture of image, using ffmpeg library
 
+    // 3D-DCT signature (Czkawka/similario_core style). Computed on demand and
+    // cached on this Video. The signature config is fixed/deterministic, so it
+    // only depends on the file; the comparison threshold lives in the matcher.
+    const v3d::VideoSignature& dct3dSignature() const;
+
   private:
     struct ResolvedCapture {
         QImage frame;
@@ -96,6 +102,10 @@ class Video : public QObject
     uint progress = 1; // to detect scenarios where ffmpeg gets stuck we update progress from time to time
     bool shouldStop = false;
     QMutex progressLock; // lock write when updating progress or terminating thread
+
+    // 3D-DCT signature cache (lazily computed, see dct3dSignature()).
+    mutable std::optional<v3d::VideoSignature> _dctSig;
+    mutable QMutex _dctSigLock;
 
   private:
     static Prefs _prefs;

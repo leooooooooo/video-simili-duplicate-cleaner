@@ -216,6 +216,22 @@
           </widget>
          </item>
          <item>
+          <widget class="QRadioButton" name="select3DDCT">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>3D-DCT video hashing (Czkawka/similario_core style). Best for mid-clip extracts, intros/outros ads, and other temporal offsets. Slower.</string>
+           </property>
+           <property name="text">
+            <string>3D-DCT</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLabel" name="label_3">
            <property name="toolTip">
             <string/>

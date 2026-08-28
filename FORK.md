@@ -52,6 +52,22 @@ Custom features added / changed by the fork maintainer in 2026:
   `exit(173)` when no App Store receipt is present (`mainwindow.cpp`), so the locally built
   binary runs without the Mac App Store.
 - **CMake / Homebrew build branch** — adjusted CMake logic to support local Homebrew-based builds.
+- **3D-DCT comparison mode** — a new selectable algorithm ("3D-DCT") added alongside pHash/SSIM.
+  It is a C++ port of the visual **3D-DCT video hashing** used by Czkawka's `similario_core` engine
+  (MIT licensed, © Rafał Mikrut / qarmin — compatible with GPL v3). It splits each video into
+  temporal windows, builds a 16×16×16 cube of grayscale frames, applies a separable 3D-DCT-II, and
+  binarizes the low-frequency corner into a 1000-bit-per-window hash. Comparison uses Hamming distance
+  plus duration bucketing and **sliding-window SubClip detection**, which catches mid-clip extracts and
+  intro/outro ads that pHash/SSIM cannot. In this port, the window count is **auto-proportional to
+  duration** (not fixed) so the longer source gets more windows than the shorter clip — this is what
+  makes arbitrary middle-segment detection actually work. The ffmpeg binary is bundled inside the
+  `.app` (resolved at runtime) and the video duration is taken from the app's metadata, so no ffprobe
+  call is needed.
+  - New files: `QtProject/app/video3ddct.h`, `QtProject/app/video3ddct.cpp`
+  - Wired into: `prefs.h` (new `_3DDCT` mode + `_threshold3DDCT`), `Video::dct3dSignature()` (cached),
+    `videopairmatcher.cpp` (3D branch in `match()`), `mainwindow.cpp`/`comparison.cpp` + their `.ui`
+    (third radio button), `main.cpp` (bundled-ffmpeg path), and the build/packaging script (ffmpeg
+    bundled into the `.app`).
 
 ### Modified source files（被修改的源文件）
 
@@ -67,6 +83,12 @@ The following tracked files were modified for this fork (dates: 2026):
 - `QtProject/app/obj-c.h`
 - `QtProject/app/obj-c.mm`
 - `QtProject/app/prefs.h`
+- `QtProject/app/main.cpp`
+- `QtProject/app/video.cpp`
+- `QtProject/app/comparison/internal/videopairmatcher.cpp`
+- `QtProject/app/comparison/internal/videopairmatcher.h`
+- `QtProject/app/video3ddct.h` *(new)*
+- `QtProject/app/video3ddct.cpp` *(new)*
 
 ## 4. Removed content（相对上游删除的内容）
 

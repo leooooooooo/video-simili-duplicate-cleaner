@@ -107,6 +107,13 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
       </widget>
      </item>
      <item>
+      <widget class="QRadioButton" name="select3DDCT">
+       <property name="text">
+        <string>3D-DCT</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_8">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>

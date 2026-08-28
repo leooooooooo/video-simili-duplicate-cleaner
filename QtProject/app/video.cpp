@@ -473,6 +473,26 @@ QString Video::msToHHMMSS(const int64_t& time) const // miliseconds to user read
     return QStringLiteral("%1:%2:%3.%4").arg(paddedHours, paddedMinutes, paddedSeconds).arg(paddedMSeconds);
 }
 
+const v3d::VideoSignature& Video::dct3dSignature() const
+{
+    if (!_dctSig.has_value()) {
+        QMutexLocker locker(&_dctSigLock);
+        if (!_dctSig.has_value()) {
+            v3d::SignatureConfig cfg;
+            cfg.auto_window_count = true; // proportional to duration -> enables sliding-window subclip detection
+            cfg.skip_secs = 15.0;        // skip intros/credits
+            cfg.window_secs = 6.0;
+            cfg.cropdetect = true;       // letterbox crop
+            v3d::VideoSignature sig;
+            std::string err;
+            const uint64_t durMs = (duration > 0) ? static_cast<uint64_t>(duration) : 1;
+            v3d::computeSignature(_filePathName.toStdString(), cfg, sig, err, durMs);
+            _dctSig = std::move(sig);
+        }
+    }
+    return *_dctSig;
+}
+
 QImage Video::ffmpegLib_captureAt(const int percent, const int ofDuration)
 {
     ffmpeg::av_log_set_level(AV_LOG_FATAL);

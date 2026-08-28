@@ -143,6 +143,7 @@ class Comparison : public QDialog
 
     void on_selectPhash_clicked(const bool& checked);
     void on_selectSSIM_clicked(const bool& checked);
+    void on_select3DDCT_clicked(const bool& checked);
 
     void on_leftImage_clicked();
     void on_rightImage_clicked();

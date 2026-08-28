@@ -10,6 +10,7 @@
 #include "internal/backgroundmatchdiscovery.h"
 #include "internal/videopairmatcher.h"
 #include "internal/videopairspace.h"
+#include "video3ddct.h"
 
 #include "ui_comparison.h" // WARNING : don't include this in the header file, otherwise includes from other files will be broken
 
@@ -55,6 +56,8 @@ Comparison::Comparison(const QVector<Video*>& videosParam, Prefs& prefsParam, co
 
     if (this->_prefs.comparisonMode() == Prefs::_SSIM)
         ui->selectSSIM->setChecked(true);
+    else if (this->_prefs.comparisonMode() == Prefs::_3DDCT)
+        ui->select3DDCT->setChecked(true);
     on_thresholdSlider_valueChanged(this->_prefs.matchSimilarityThreshold());
 
     ui->progressBar->setMinimum(1);
@@ -726,8 +729,10 @@ void Comparison::updateUI()
 
     if (this->_prefs.comparisonMode() == Prefs::_PHASH)
         ui->identicalBits->setText(QString("%1/64 same bits").arg(_phashSimilarity));
-    if (this->_prefs.comparisonMode() == Prefs::_SSIM)
+    else if (this->_prefs.comparisonMode() == Prefs::_SSIM)
         ui->identicalBits->setText(QString("%1 SSIM index").arg(QString::number(qMin(_ssimSimilarity, 1.0), 'f', 3)));
+    else if (this->_prefs.comparisonMode() == Prefs::_3DDCT)
+        ui->identicalBits->setText(QString("%1 3D-DCT score").arg(QString::number(qMin(_ssimSimilarity, 1.0), 'f', 3)));
     _zoomLevel = 0;
     ui->progressBar->setValue(progressBarValue(comparisonsSoFar()));
 }
@@ -1282,6 +1287,16 @@ void Comparison::on_selectSSIM_clicked(const bool& checked)
 {
     if (checked) {
         _prefs.comparisonMode(Prefs::_SSIM);
+        if (_backgroundDiscovery->hasStarted())
+            restartBackgroundDiscovery();
+    }
+    emit switchComparisonMode(_prefs.comparisonMode());
+}
+
+void Comparison::on_select3DDCT_clicked(const bool& checked)
+{
+    if (checked) {
+        _prefs.comparisonMode(Prefs::_3DDCT);
         if (_backgroundDiscovery->hasStarted())
             restartBackgroundDiscovery();
     }

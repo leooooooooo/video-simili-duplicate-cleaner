@@ -29,6 +29,7 @@ struct VideoPairMatchConfig {
     int sameDurationModifier = 1;
     int differentDurationModifier = 4;
     bool detectRotatedCopies = false;
+    double threshold3DDCT = 0.90; // 0..1 similarity score for the 3D-DCT mode
 };
 
 struct VideoPairMatchResult {
