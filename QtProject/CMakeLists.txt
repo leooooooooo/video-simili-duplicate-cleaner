@@ -28,20 +28,14 @@ message(STATUS "Qt6Concurrent_DIR: ${Qt6Concurrent_DIR}")
 
 function(target_link_video_processing_dependencies TARGET_NAME)
     if(APPLE)
-        # OpenCV
-        set(OPENCV_ROOT "${CMAKE_SOURCE_DIR}/libraries/macos/opencv-arm/opencv-install")
-        target_include_directories(${TARGET_NAME} PRIVATE ${OPENCV_ROOT}/include/opencv4)
+        # OpenCV (Homebrew)
+        find_package(OpenCV REQUIRED COMPONENTS core imgproc)
         target_link_libraries(${TARGET_NAME} PRIVATE
-            ${OPENCV_ROOT}/lib/libopencv_imgproc.a
-            ${OPENCV_ROOT}/lib/libopencv_core.a
-            ${OPENCV_ROOT}/lib/opencv4/3rdparty/libzlib.a
-            ${OPENCV_ROOT}/lib/opencv4/3rdparty/libittnotify.a
-            "-framework OpenCL"
-            "-framework Accelerate"
+            ${OpenCV_LIBS}
         )
 
-        # FFMPEG
-        set(FFMPEG_ROOT "${CMAKE_SOURCE_DIR}/libraries/macos/ffmpeg/ffmpeg-universalized-libs")
+        # FFMPEG (Homebrew)
+        set(FFMPEG_ROOT "/opt/homebrew/opt/ffmpeg")
         target_include_directories(${TARGET_NAME} SYSTEM PRIVATE
             ${FFMPEG_ROOT}/include
         )
@@ -58,8 +52,8 @@ function(target_link_video_processing_dependencies TARGET_NAME)
             "-framework VideoToolbox"
         )
 
-        # AOM
-        set(AOM_ROOT "${CMAKE_SOURCE_DIR}/libraries/macos/ffmpeg/libaom-universalized")
+        # AOM (Homebrew)
+        set(AOM_ROOT "/opt/homebrew/opt/aom")
         target_include_directories(${TARGET_NAME} PRIVATE ${AOM_ROOT}/include)
         target_link_directories(${TARGET_NAME} PRIVATE
             ${AOM_ROOT}/lib
@@ -190,6 +184,9 @@ target_compile_definitions(video-simili-duplicate-cleaner PRIVATE
 
 target_link_video_processing_dependencies(video-simili-duplicate-cleaner)
 
-# Enable testing
-enable_testing()
-add_subdirectory(tests)
+# Enable testing (可跳过，本地打包用 -DVSDC_BUILD_TESTS=OFF)
+option(VSDC_BUILD_TESTS "Build tests" ON)
+if(VSDC_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

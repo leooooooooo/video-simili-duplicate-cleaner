@@ -117,6 +117,10 @@ class MainWindow : public QMainWindow
         this->shouldScan = true;
         this->_prefs.detectRotatedCopies(checked);
     }
+    void on_onlyDifferentFoldersCheckbox_toggled(bool checked)
+    {
+        this->_prefs.onlyDifferentFolders(checked);
+    }
 
     void on_actionRestore_all_settings_triggered();
 

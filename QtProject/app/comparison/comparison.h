@@ -150,14 +150,21 @@ class Comparison : public QDialog
     void on_leftFileName_clicked();
     void on_rightFileName_clicked();
     void openFileManager(const QString& filename);
+    void on_leftPathName_clicked();
+    void on_rightPathName_clicked();
+    void openFolder(const QString& folderPath);
 
     void on_leftDelete_clicked() { deleteVideo(_leftVideo); }
     void on_rightDelete_clicked() { deleteVideo(_rightVideo); }
-    void deleteVideo(const int& side, const bool auto_trash_mode = false);
+    void deleteVideo(const int& side, const bool auto_trash_mode = false, const bool skipConfirmation = false);
+    void on_bothDelete_clicked();
 
     void on_leftMove_clicked();
     void on_rightMove_clicked();
     void moveVideo(const QString& from, const QString& to);
+    void on_leftMoveReplace_clicked();
+    void on_rightMoveReplace_clicked();
+    void moveAndReplaceVideo(const int& fromSide, const int& toSide);
     void on_swapFilenames_clicked() const;
 
     void on_thresholdSlider_valueChanged(const int& value);

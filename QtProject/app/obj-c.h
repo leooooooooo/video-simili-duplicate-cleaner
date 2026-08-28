@@ -28,6 +28,14 @@ class Obj_C
          * return :  string OBJ_C_SUCCESS_STRING if success, or the error if error
         * */
     static char* obj_C_revealMediaInPhotosApp(char* mediaId);
+
+    /* *
+         * function: 打开 macOS 原生目录选择面板（NSOpenPanel），允许一次多选多个文件夹
+         * param  :  initialDir 初始定位目录（可为空）
+         * return :  以 ";" 分隔的绝对路径列表字符串（调用方负责 free）；
+         *           用户取消返回空字符串 ""；出错返回 OBJ_C_FAILURE_STRING
+        * */
+    static char* obj_C_selectFolders(char* initialDir);
 };
 
 #endif // OBJCHEADER_H

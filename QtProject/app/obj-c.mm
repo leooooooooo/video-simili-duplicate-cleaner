@@ -1,5 +1,6 @@
 #import "obj-c.h"
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h> // NSOpenPanel for folder multi-selection
 
 char* Obj_C::obj_C_addMediaToAlbum(char* albumName, char* mediaId)
 {
@@ -79,4 +80,33 @@ char* Obj_C::obj_C_revealMediaInPhotosApp(char* mediaId)
         returnString = [NSString stringWithFormat:@"%@", errorDictionary];
         return (char*)[returnString UTF8String];
     }
+}
+
+char* Obj_C::obj_C_selectFolders(char* initialDir)
+{
+    NSOpenPanel* panel = [NSOpenPanel openPanel];
+    [panel setCanChooseFiles:NO];
+    [panel setCanChooseDirectories:YES];
+    [panel setAllowsMultipleSelection:YES]; // 关键：允许一次多选多个文件夹
+    [panel setCanCreateDirectories:YES];
+    [panel setTitle:@"Select folder(s)"];
+
+    if (initialDir != nullptr && strlen(initialDir) > 0) {
+        NSString* startPath = [NSString stringWithUTF8String:initialDir];
+        [panel setDirectoryURL:[NSURL fileURLWithPath:startPath isDirectory:YES]];
+    }
+
+    if ([panel runModal] == NSModalResponseOK) {
+        NSArray<NSURL*>* urls = [panel URLs];
+        if (urls.count == 0) // none chosen
+            return strdup("");
+
+        NSMutableArray<NSString*>* paths = [NSMutableArray arrayWithCapacity:urls.count];
+        for (NSURL* url in urls)
+            [paths addObject:url.path]; // absolute folder paths, native separators
+
+        NSString* joined = [paths componentsJoinedByString:@";"];
+        return strdup([joined UTF8String]);
+    }
+    return strdup(""); // cancelled
 }

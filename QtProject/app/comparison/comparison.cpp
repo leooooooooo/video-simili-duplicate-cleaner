@@ -35,6 +35,9 @@ Comparison::Comparison(const QVector<Video*>& videosParam, Prefs& prefsParam, co
 {
     ui->setupUi(this);
 
+    // 用户要求：比对界面默认勾选「Disable confirmations」（删除不再弹确认）
+    ui->disableDeleteConfirmationCheckbox->setChecked(true);
+
     this->setGeometry(mainWindowGeometry);
 
     connect(this, SIGNAL(sendStatusMessage(const QString&)), _prefs._mainwPtr, SLOT(addStatusMessage(const QString&)));
@@ -426,6 +429,10 @@ bool Comparison::isPairStillDisplayable(const MatchedVideoPair& pair) const
         return false;
     if (Db(_prefs.cacheFilePathName()).isPairToIgnore(left->_filePathName, right->_filePathName))
         return false;
+    // 仅显示左右两边在不同文件夹的查重项（主界面勾选 onlyDifferentFoldersCheckbox）
+    if (_prefs.onlyDifferentFolders()
+        && QFileInfo(left->_filePathName).absolutePath() == QFileInfo(right->_filePathName).absolutePath())
+        return false;
     if (ui->settingNamesInAnotherCheckbox->isChecked()
         && whichFilenameContainsTheOther(left->_filePathName, right->_filePathName) == NOT_CONTAINED)
         return false;
@@ -706,10 +713,14 @@ void Comparison::updateUI()
     {
         ui->leftMove->setDisabled(true);
         ui->rightMove->setDisabled(true);
+        ui->leftMoveReplace->setDisabled(true);
+        ui->rightMoveReplace->setDisabled(true);
     }
     else {
         ui->leftMove->setDisabled(false);
         ui->rightMove->setDisabled(false);
+        ui->leftMoveReplace->setDisabled(false);
+        ui->rightMoveReplace->setDisabled(false);
     }
 
     if (this->_prefs.comparisonMode() == Prefs::_PHASH)
@@ -822,6 +833,29 @@ void Comparison::on_rightFileName_clicked()
     openFileManager(_videos[_rightVideo]->_filePathName);
 }
 
+void Comparison::on_leftPathName_clicked()
+{
+    openFolder(QFileInfo(_videos[_leftVideo]->_filePathName).absolutePath());
+}
+
+void Comparison::on_rightPathName_clicked()
+{
+    openFolder(QFileInfo(_videos[_rightVideo]->_filePathName).absolutePath());
+}
+
+void Comparison::openFolder(const QString& folderPath)
+{
+    if (folderPath.isEmpty())
+        return;
+#ifdef Q_OS_WIN
+    QProcess::startDetached("explorer", {QDir::toNativeSeparators(folderPath)});
+#elif defined(Q_OS_MACOS)
+    QProcess::startDetached("open", QStringList() << folderPath);
+#elif defined(Q_OS_X11)
+    QProcess::startDetached(QStringLiteral("xdg-open \"%1\"").arg(folderPath));
+#endif
+}
+
 void Comparison::on_leftImage_clicked()
 {
     openMedia(_videos[_leftVideo]->_filePathName);
@@ -856,7 +890,7 @@ void Comparison::openMedia(const QString filename)
 #endif
 }
 
-void Comparison::deleteVideo(const int& side, const bool auto_trash_mode)
+void Comparison::deleteVideo(const int& side, const bool auto_trash_mode, const bool skipConfirmation)
 {
     const QString filename = _videos[side]->_filePathName;
     const QString onlyFilename = filename.right(filename.length() - filename.lastIndexOf("/") - 1);
@@ -892,7 +926,8 @@ void Comparison::deleteVideo(const int& side, const bool auto_trash_mode)
     default:
         break;
     }
-    if (ui->disableDeleteConfirmationCheckbox->isChecked()
+    if (skipConfirmation
+        || ui->disableDeleteConfirmationCheckbox->isChecked()
         || QMessageBox::question(this, "Delete file", question, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
     {
         // check if file is in locked folder set by user
@@ -1063,6 +1098,29 @@ void Comparison::deleteVideo(const int& side, const bool auto_trash_mode)
     }
 }
 
+void Comparison::on_bothDelete_clicked()
+{
+    // 先捕获左右两份路径，避免 deleteVideo 删除后自动跳转导致第二份删错文件
+    const int leftSide = _leftVideo;
+    const int rightSide = _rightVideo;
+    const QString leftPath = _videos[leftSide]->_filePathName;
+    const QString rightPath = _videos[rightSide]->_filePathName;
+
+    if (_videos[leftSide]->trashed || !QFileInfo::exists(leftPath)) {
+        _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
+        return;
+    }
+    if (_videos[rightSide]->trashed || !QFileInfo::exists(rightPath)) {
+        _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
+        return;
+    }
+
+    // 按用户要求：Delete Both 不再弹确认，直接删除两份
+    deleteVideo(leftSide, true, true);
+    deleteVideo(rightSide, true, true);
+    _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
+}
+
 void Comparison::on_leftMove_clicked()
 {
     moveVideo(_videos[_leftVideo]->_filePathName, _videos[_rightVideo]->_filePathName);
@@ -1104,6 +1162,69 @@ void Comparison::moveVideo(const QString& from, const QString& to)
             _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
         }
     }
+}
+
+void Comparison::on_leftMoveReplace_clicked()
+{
+    moveAndReplaceVideo(_leftVideo, _rightVideo);
+}
+
+void Comparison::on_rightMoveReplace_clicked()
+{
+    moveAndReplaceVideo(_rightVideo, _leftVideo);
+}
+
+void Comparison::moveAndReplaceVideo(const int& fromSide, const int& toSide)
+{
+    const QString from = _videos[fromSide]->_filePathName;
+    const QString to = _videos[toSide]->_filePathName;
+
+#ifdef Q_OS_MACOS
+    if (from.contains(".photoslibrary") || to.contains(".photoslibrary")) {
+        QMessageBox::information(this, "", "This file is in an Apple Photos Library, cannot do this !");
+        return;
+    }
+#endif
+
+    // 两份都必须存在，否则先跳走（其中一份可能已被外部删除）
+    if (!QFileInfo::exists(from) || !QFileInfo::exists(to)) {
+        _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
+        return;
+    }
+
+    const QString toPath = to.left(to.lastIndexOf("/"));
+    const QString fromFilename = from.right(from.length() - from.lastIndexOf("/") - 1);
+
+    // 按用户要求：Move & Replace 不再弹确认，直接执行
+
+    // 1) 先删除被替换方（to）——用 auto_trash_mode + skipConfirmation，删除成功不会自动跳转
+    deleteVideo(toSide, true, true);
+
+    // 若删除未成功（例如被锁定/无权限），中止移动，避免两边状态不一致
+    if (QFileInfo::exists(to)) {
+        QMessageBox::information(this, "", "Could not delete the file to be replaced. Aborting.");
+        return;
+    }
+
+    // 2) 把 from 移动到 to 所在文件夹；若目标已存在同名文件，追加随机后缀避免覆盖
+    QString destPath = QString("%1/%2").arg(toPath, fromFilename);
+    if (QFileInfo::exists(destPath)) {
+        const QFileInfo fInfo(fromFilename);
+        destPath = QString("%1/%2-%3.%4")
+                       .arg(toPath, fInfo.completeBaseName(),
+                            QUuid::createUuid().toString().remove("{").remove("}"), fInfo.suffix());
+    }
+    QFile moveThisFile(from);
+    if (!moveThisFile.rename(destPath)) {
+        QMessageBox::information(this, "", "Could not move file. Check file permissions and available disk space.");
+        return;
+    }
+
+    // 3) 更新对象内路径并统一跳转
+    _videos[fromSide]->_filePathName = destPath;
+    emit sendStatusMessage(QString("Moved %1 to %2 and deleted %3")
+                               .arg(QDir::toNativeSeparators(from), toPath, QDir::toNativeSeparators(to)));
+    _seekForwards ? on_nextVideo_clicked() : on_prevVideo_clicked();
 }
 
 void Comparison::on_swapFilenames_clicked() const

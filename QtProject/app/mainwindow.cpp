@@ -2,6 +2,11 @@
 #include "prefs.h"
 #include <QProgressDialog>
 
+#ifdef Q_OS_MACOS
+#include "obj-c.h" // 原生 NSOpenPanel 多选文件夹
+#include <cstdlib> // free()
+#endif
+
 MainWindow::MainWindow() : ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -27,8 +32,8 @@ MainWindow::MainWindow() : ui(new Ui::MainWindow)
     addStatusMessage("   ");
 #else
     if (foundReceipt == false) {
-        exit(
-            173); // error code as per apple guideline https://developer.apple.com/library/archive/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateLocally.html#//apple_ref/doc/uid/TP40010573-CH1-SW21
+        // 本地离线版无 App Store 收据，不再强制退出
+        addStatusMessage("Receipt validation skipped (local build)");
     }
 #endif
 #elif defined(Q_OS_WIN)
@@ -71,6 +76,7 @@ MainWindow::MainWindow() : ui(new Ui::MainWindow)
     if (this->_prefs.isVerbose())
         ui->verboseCheckbox->setCheckState(Qt::Checked);
     ui->detectRotatedCopiesCheckbox->setChecked(this->_prefs.detectRotatedCopies());
+    ui->onlyDifferentFoldersCheckbox->setChecked(this->_prefs.onlyDifferentFolders());
     foreach (QString folder, this->_prefs.scanLocations()) {
         if (!folder.isEmpty())
             this->ui->directoryBox->insert(QStringLiteral("%1;").arg(QDir::toNativeSeparators(folder)));
@@ -83,6 +89,11 @@ MainWindow::MainWindow() : ui(new Ui::MainWindow)
     setUseCacheOption(this->_prefs.useCacheOption());
     restoreCustomTrashFolder();
     updateErrorVideoActions();
+
+    // 用户要求：软件打开后默认开启「直接删除」（不走废纸篓）
+    // 置于 restoreCustomTrashFolder() 之后，覆盖其可能恢复的自定义废纸篓模式
+    _prefs.delMode = Prefs::DIRECT_DELETION;
+    updateTrashActions();
 
     // Add Cmd+W to quit, default cmd+q already handled by qt on mainwindow
     connect(new QShortcut(QKeySequence::Close, this), &QShortcut::activated, this, &QApplication::quit);
@@ -131,15 +142,43 @@ void MainWindow::on_browseFolders_clicked()
     if (dir.isEmpty())
         dir = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first();
 
+    QStringList selectedDirs;
+#ifdef Q_OS_MACOS
+    // 使用 macOS 原生 NSOpenPanel：保持系统原生外观，同时支持一次多选多个文件夹
+    QByteArray dirBytes = dir.toLocal8Bit();
+    char* result = Obj_C::obj_C_selectFolders(dirBytes.data());
+    if (result == nullptr)
+        return;
+    const QString resultStr = QString::fromLocal8Bit(result);
+    free(result);
+    if (resultStr.isEmpty() || resultStr == QStringLiteral(OBJ_C_FAILURE_STRING))
+        return; // cancelled or error
+    selectedDirs = resultStr.split(QStringLiteral(";"), Qt::SkipEmptyParts);
+#else
+    // 其他平台：沿用原有单选逻辑
     dir = QFileDialog::getExistingDirectory(ui->browseFolders, QByteArrayLiteral("Open folder"),
                                             dir /*defines where the chooser opens at*/,
                                             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (dir.isEmpty()) { //empty because error or none chosen in dialog
+    if (dir.isEmpty()) //empty because error or none chosen in dialog
         return;
+    selectedDirs << dir;
+#endif
+
+    // 解析地址栏中已有的路径（分号分隔），避免重复
+    QStringList existing;
+    const QString text = ui->directoryBox->text();
+    for (const QString& p : text.split(QStringLiteral(";"), Qt::SkipEmptyParts))
+        existing << p;
+
+    // 逐个追加新选的文件夹，输出格式与多次单选一致（分号分隔）
+    for (const QString& selected : selectedDirs) {
+        const QString native = QDir::toNativeSeparators(selected);
+        if (!existing.contains(native))
+            existing << native;
     }
-    ui->directoryBox->insert(QStringLiteral(";%1").arg(QDir::toNativeSeparators(dir)));
+    ui->directoryBox->setText(existing.join(QStringLiteral(";")));
     ui->directoryBox->setFocus();
-    this->_prefs.browseFoldersLastPath(dir);
+    this->_prefs.browseFoldersLastPath(selectedDirs.last());
 }
 
 void MainWindow::dropEvent(QDropEvent* event)

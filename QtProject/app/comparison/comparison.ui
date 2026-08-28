@@ -310,14 +310,23 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="leftPathName">
+                <widget class="ClickableLabel" name="leftPathName" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <property name="text">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>13</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">color : rgb(118, 214, 255); text-decoration : underline;</string>
+                 </property>
+                 <property name="text" stdset="0">
                   <string/>
                  </property>
                  <property name="alignment">
@@ -773,14 +782,23 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="rightPathName">
+                <widget class="ClickableLabel" name="rightPathName" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <property name="text">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>13</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">color : rgb(118, 214, 255); text-decoration : underline;</string>
+                 </property>
+                 <property name="text" stdset="0">
                   <string/>
                  </property>
                  <property name="alignment">
@@ -1192,8 +1210,27 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="toolTip">
+              <string>Move the left file into the right file's folder</string>
+             </property>
              <property name="text">
               <string>Move -&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="leftMoveReplace">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Move the left file into the right file's folder, and delete the right file (replace it)</string>
+             </property>
+             <property name="text">
+              <string>Move &amp; Replace -&gt;</string>
              </property>
             </widget>
            </item>
@@ -1202,60 +1239,8 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
              </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="leftDelete">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Shortcut: Left arrow</string>
-             </property>
-             <property name="text">
-              <string>Trash</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_10">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Policy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>10</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="rightDelete">
-             <property name="toolTip">
-              <string>Shortcut: Right arrow</string>
-             </property>
-             <property name="text">
-              <string>Trash</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
+              <enum>QSizePolicy::Policy::Expanding</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -1264,9 +1249,22 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
               </size>
              </property>
             </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="rightMoveReplace">
+             <property name="toolTip">
+              <string>Move the right file into the left file's folder, and delete the left file (replace it)</string>
+             </property>
+             <property name="text">
+              <string>&lt;- Move &amp; Replace</string>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="rightMove">
+             <property name="toolTip">
+              <string>Move the right file into the left file's folder</string>
+             </property>
              <property name="text">
               <string>&lt;- Move</string>
              </property>
@@ -1300,6 +1298,81 @@ Ex. VideoA.mp4 and VideoA-2.mp4</string>
               <bool>true</bool>
              </property>
             </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="deleteButtonsLayout">
+           <item>
+            <spacer name="horizontalSpacer_delete_left">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="leftDelete">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Shortcut: Left arrow</string>
+             </property>
+             <property name="text">
+              <string>Trash left</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="bothDelete">
+             <property name="styleSheet">
+              <string notr="true">color: rgb(200, 30, 30);</string>
+             </property>
+             <property name="toolTip">
+              <string>Delete both files with a single confirmation</string>
+             </property>
+             <property name="text">
+              <string>Delete Both</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="rightDelete">
+             <property name="toolTip">
+              <string>Shortcut: Right arrow</string>
+             </property>
+             <property name="text">
+              <string>Trash right</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_delete_right">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </item>

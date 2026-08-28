@@ -342,6 +342,23 @@ class Prefs
         QSettings(APP_NAME, APP_NAME).setValue("detect_rotated_copies", enabled);
     }
 
+    // 仅显示左右两边位于不同文件夹的查重项
+    bool onlyDifferentFolders() const
+    {
+        if (this->onlyDifferentFoldersStatic == nullptr)
+            this->onlyDifferentFoldersStatic =
+                std::make_unique<bool>(QSettings(APP_NAME, APP_NAME).value("only_different_folders", false).toBool());
+        return *this->onlyDifferentFoldersStatic;
+    }
+    void onlyDifferentFolders(const bool enabled)
+    {
+        if (this->onlyDifferentFoldersStatic == nullptr)
+            this->onlyDifferentFoldersStatic = std::make_unique<bool>(enabled);
+        else
+            *this->onlyDifferentFoldersStatic = enabled;
+        QSettings(APP_NAME, APP_NAME).setValue("only_different_folders", enabled);
+    }
+
     SortCriterion sortCriterion() const
     {
         if (this->sortCriterionStatic == nullptr) {
@@ -387,6 +404,7 @@ class Prefs
     inline static std::unique_ptr<USE_CACHE_OPTION> useCacheOptionStatic = nullptr;
     inline static std::unique_ptr<bool> verboseStatic = nullptr;
     inline static std::unique_ptr<bool> detectRotatedCopiesStatic = nullptr;
+    inline static std::unique_ptr<bool> onlyDifferentFoldersStatic = nullptr;
     inline static std::unique_ptr<SortCriterion> sortCriterionStatic = nullptr;
     // To know whether the custom trash folder setting was loaded from QSettings we need an extra flag
     // because a QDir has no good state of "initialized but no value", it would just be root directory
