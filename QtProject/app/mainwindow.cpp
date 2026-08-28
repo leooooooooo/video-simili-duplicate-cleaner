@@ -1,3 +1,4 @@
+// Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3).
 #include "mainwindow.h"
 #include "prefs.h"
 #include <QProgressDialog>

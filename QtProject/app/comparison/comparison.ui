@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3). -->
 <ui version="4.0">
  <class>Comparison</class>
  <widget class="QDialog" name="Comparison">

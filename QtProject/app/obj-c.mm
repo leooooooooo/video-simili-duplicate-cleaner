@@ -1,3 +1,4 @@
+// Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3).
 #import "obj-c.h"
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h> // NSOpenPanel for folder multi-selection

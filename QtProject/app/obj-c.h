@@ -1,3 +1,4 @@
+// Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3).
 #ifndef OBJCHEADER_H
 #define OBJCHEADER_H
 

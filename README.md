@@ -1,5 +1,8 @@
 # Video simili duplicate cleaner
 
+> **⚠️ Fork / Modified version notice**
+> This repository is a **modified/derivative version** of [Video simili duplicate cleaner](https://github.com/theophanemayaud/video-simili-duplicate-cleaner) by **Théophane Mayaud**, distributed under the **GNU GPL v3**. It is **not** the official App Store release. For the list of changes and full compliance/attribution details, see **[FORK.md](FORK.md)**.
+
 Find and remove duplicates : *Video simili duplicate cleaner* is a program that can find duplicate or simply similar video files.
 Video simili duplicate cleaner compares the actual video content regardless of different format or compression used, while other software only find identical files (digital video fingerprinting).
 

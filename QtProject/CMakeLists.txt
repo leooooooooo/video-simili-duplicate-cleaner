@@ -1,3 +1,4 @@
+# Modified by leooooooooo, 2026 — derivative of theophanemayaud/video-simili-duplicate-cleaner (GPL v3).
 cmake_minimum_required(VERSION 3.16)
 
 project(video-simili-duplicate-cleaner VERSION 0.1 LANGUAGES CXX)

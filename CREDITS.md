@@ -30,3 +30,7 @@ Original code repository : https://github.com/kristiankoskimaki/vidupe
 ## App Icon
 
 Icons made by <a href="https://www.flaticon.com/authors/xnimrodx" title="xnimrodx">xnimrodx</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+
+## This repository (fork by leooooooooo)
+
+This GitHub repository (`leooooooooo/video-simili-duplicate-cleaner`) is a personal **fork and modified version** of the project above. The original author's copyright and GPL v3 license are preserved. Modifications were made in **2026** and are also licensed under GPL v3. For the full list of changes and compliance details, see **[FORK.md](FORK.md)**.
